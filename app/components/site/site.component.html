@@ -1,0 +1,331 @@
+<div class="jumbotron" style="margin-top: 30px;">
+        
+        <header>
+            <div class="row">
+            <div class="col-md-3">
+                <a routerLink="/">Home</a>
+                <div *ngIf="avaible" class="maps-container-sm">
+                    <div class="sebm-google-map-container" style="height: 200px;">
+                        <sebm-google-map 
+                            [latitude]="marker.lat"
+                            [longitude]="marker.lng"
+                            [zoom]="mapsoptions.zoom"
+                            [disableDefaultUI]="true"
+                            [zoomControl]="false"
+                            [styles]="mapsoptions.styles"
+                            [streetViewControl]="false">
+                                <sebm-google-map-marker 
+                                    [latitude]="marker.lat"
+                                    [longitude]="marker.lng">
+                                </sebm-google-map-marker>
+                        </sebm-google-map>
+                    </div>
+                </div>
+                <button class="btn btn-success" (click)="navigateMe()" style="margin-top: 5px; width: 100%;" >Auf Karte anzeigen</button>
+            </div>
+            <div class="col-md-9">
+                <div *ngIf="site">
+                    <div *ngIf="site.parkraumDisplayName != ''">
+                        <h2>{{site.parkraumDisplayName}}</h2>
+                    </div>
+                    <div *ngIf="site.parkraumDisplayName == ''">
+                        <h2>{{site.parkraumParkTypName}} {{site.parkraumBahnhofName}} {{site.parkraumKennung}}</h2>
+                    </div>
+                    <h4>{{site.parkraumBetreiber}}</h4>
+                    <div *ngIf="!site.parkraumIsAusserBetrieb">
+                        <h6><i class="fa fa-check-circle success" aria-hidden="true"></i> Geöffnet: {{site.parkraumOeffnungszeiten}}</h6>
+                    </div>
+                    <div *ngIf="site.parkraumIsAusserBetrieb">
+                        <h6><i class="fa fa-exclamation-triangle red" aria-hidden="true"></i> {{site.parkraumAusserBetriebText}}</h6>
+                    </div>
+                    <div *ngIf="freeSpaces">
+                        <h6><i class="fa fa-car" aria-hidden="true"></i> {{freeSpaces}} {{maxSpaces}}</h6>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </header>
+    
+    <div *ngIf="occ" class="occupancy more">
+        <button class="astext" (click)="showOccupancyInfo()"><i class="{{occupancyInfoClass}}" aria-hidden="true"></i> Verfügbarkeit über die Woche und den Tag verteilt</button>
+        <div *ngIf="occupancyInfo">
+            <div class="row">
+            <div class="col-md-8 more">
+                <!-- AKtuelle Verfügbarkeit als Tortendiagram, animiert-->
+                <div *ngIf="weekOccupancyVisible">
+                    <base-chart 
+                        class="chart"
+                        [datasets]="barweekoptions.datasets"
+                        [labels]="barweekoptions.labels"
+                        [options]="barweekoptions.options"
+                        [colors]="barweekoptions.colors"
+                        [chartType]="'bar'">
+                    </base-chart>
+                </div>
+                <div *ngIf="!weekOccupancyVisible" style="height: 150px;">
+                    <base-chart
+                        class="chart"
+                        [datasets]="bardayoptions.datasets"
+                        [labels]="bardayoptions.labels"
+                        [options]="bardayoptions.options"
+                        [colors]="bardayoptions.colors"
+                        [chartType]="'bar'">
+                    </base-chart>
+                </div>
+            <div style="display:flex;justify-content:center;align-items:center;">
+            <div class="btn-group more">
+                <button (click)="changeVisibleOccupancy(true)" class="btn btn-default">Woche</button>
+                <button (click)="changeVisibleOccupancy(false)" class="btn btn-default">Tag</button>
+            </div>
+            </div>
+            </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row more-second">
+        <div class="col-md-12">
+            <button class="astext" (click)="showPriceInfo()"><i class="{{priceInfoClass}}" aria-hidden="true"></i> Aktuelle Preisinformationen anzeigen</button>
+            <div *ngIf="priceInfo">
+                <div class="row">
+                    <div class="col-md-3">
+                        <table class="table table-bordered table-margin-top">
+                            <tbody>
+                                <tr>
+                                    <td>Frei Parken</td>
+                                    <td>
+                                        <div *ngIf="site.tarifFreiparkzeit == 'N' || site.tarifFreiparkzeit == 'n' || site.tarifFreiparkzeit == ''">
+                                            <div class="fa fa-times red" aria-hidden="true"></div>
+                                        </div>
+                                        <div *ngIf="site.tarifFreiparkzeit != 'N' && site.tarifFreiparkzeit != 'n' && site.tarifFreiparkzeit != ''">
+                                            {{site.tarifFreiparkzeit}}
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>20 Minuten</td>
+                                    <td>
+                                        <div *ngIf="site.tarif20Min == 'N' || site.tarif20Min == 'n' || site.tarif20Min == ''">
+                                            <div class="fa fa-times red" aria-hidden="true"></div>
+                                        </div>
+                                        <div *ngIf="site.tarif20Min != 'N' && site.tarif20Min != 'n' && site.tarif20Min != ''">
+                                            {{site.tarif20Min}} &euro;
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>30 Minuten</td>
+                                    <td>
+                                        <div *ngIf="site.tarif30Min == 'N' || site.tarif30Min == 'n' || site.tarif30Min == ''">
+                                            <div class="fa fa-times red" aria-hidden="true"></div>
+                                        </div>
+                                        <div *ngIf="site.tarif30Min != 'N' && site.tarif30Min != 'n' && site.tarif30Min != ''">
+                                            {{site.tarif30Min}} &euro;
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>1 Stunde</td>
+                                    <td>
+                                        <div *ngIf="site.tarif1Std == 'N' || site.tarif1Std == 'n' || site.tarif1Std == ''">
+                                            <div class="fa fa-times red" aria-hidden="true"></div>
+                                        </div>
+                                        <div *ngIf="site.tarif1Std != 'N' && site.tarif1Std != 'n' && site.tarif1Std != ''">
+                                            {{site.tarif1Std}} &euro;
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>1 Tag</td>
+                                    <td>
+                                        <div *ngIf="site.tarif1Tag == 'N' || site.tarif1Tag == 'n' || site.tarif1Tag == ''">
+                                            <div class="fa fa-times red" aria-hidden="true"></div>
+                                        </div>
+                                        <div *ngIf="site.tarif1Tag != 'N' && site.tarif1Tag != 'n' && site.tarif1Tag != ''">
+                                            {{site.tarif1Tag}} &euro;
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>1 Tag ermäßigt</td>
+                                    <td>
+                                        <div *ngIf="site.tarif1TagRabattDB == 'N' || site.tarif1TagRabattDB == 'n' || site.tarif1TagRabattDB == ''">
+                                            <div class="fa fa-times red" aria-hidden="true"></div>
+                                        </div>
+                                        <div *ngIf="site.tarif1TagRabattDB != 'N' && site.tarif1TagRabattDB != 'n' && site.tarif1TagRabattDB != ''">
+                                            {{site.tarif1TagRabattDB}} &euro;
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>                
+                    <div class="col-md-3 col-lg-offset-1">
+                        <table class="table table-bordered table-margin-top">
+                            <tbody>
+                                <tr>
+                                    <td>1 Woche</td>
+                                    <td>
+                                        <div *ngIf="site.tarif1Woche == 'N' || site.tarif1Woche == 'n' || site.tarif1Woche == ''">
+                                            <div class="fa fa-times red" aria-hidden="true"></div>
+                                        </div>
+                                        <div *ngIf="site.tarif1Woche != 'N' && site.tarif1Woche != 'n' && site.tarif1Woche != ''">
+                                            {{site.tarif1Woche}} &euro;
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>1 Woche erm.</td>
+                                    <td>
+                                        <div *ngIf="site.tarif1WocheRabattDB == 'N' || site.tarif1WocheRabattDB == 'n' || site.tarif1WocheRabattDB == ''">
+                                            <div class="fa fa-times red" aria-hidden="true"></div>
+                                        </div>
+                                        <div *ngIf="site.tarif1WocheRabattDB != 'N' && site.tarif1WocheRabattDB != 'n' && site.tarif1WocheRabattDB != ''">
+                                            {{site.tarif1WocheRabattDB}} &euro;
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>1 Monat</td>
+                                    <td>
+                                        <div *ngIf="site.tarif1MonatAutomat == 'N' || site.tarif1MonatAutomat == 'n' || site.tarif1MonatAutomat == ''">
+                                            <div class="fa fa-times red" aria-hidden="true"></div>
+                                        </div>
+                                        <div *ngIf="site.tarif1MonatAutomat != 'N' && site.tarif1MonatAutomat != 'n' && site.tarif1MonatAutomat != ''">
+                                            {{site.tarif1MonatAutomat}} &euro;
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>1 Monat Dauer<sup>1,2,3</sup></td>
+                                    <td>
+                                        <div *ngIf="site.tarif1MonatDauerparken == 'N' || site.tarif1MonatDauerparken == 'n' || site.tarif1MonatDauerparken == ''">
+                                            <div class="fa fa-times red" aria-hidden="true"></div>
+                                        </div>
+                                        <div *ngIf="site.tarif1MonatDauerparken != 'N' && site.tarif1MonatDauerparken != 'n' && site.tarif1MonatDauerparken != ''">
+                                            {{site.tarif1MonatDauerparken}} &euro;
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>1 Monat Dauer<sup>4</sup></td>
+                                    <td>
+                                        <div *ngIf="site.tarif1MonatDauerparkenFesterStellplatz == 'N' || site.tarif1MonatDauerparkenFesterStellplatz == 'n' || site.tarif1MonatDauerparkenFesterStellplatz == ''">
+                                            <div class="fa fa-times red" aria-hidden="true"></div>
+                                        </div>
+                                        <div *ngIf="site.tarif1MonatDauerparkenFesterStellplatz != 'N' && site.tarif1MonatDauerparkenFesterStellplatz != 'n' && site.tarif1MonatDauerparkenFesterStellplatz != ''">
+                                            {{site.tarif1MonatDauerparkenFesterStellplatz}} &euro;
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                    </div>
+                    <div class="col-md-4 col-lg-offset-1">
+                        <table class="table table-bordered table-margin-top">
+                            <tbody>
+                                <tr>
+                                    <td>Tageskarte bahn.comfort</td>
+                                    <td>
+                                        <div *ngIf="!site.tarifRabattDBIsbahncomfort">
+                                            <div class="fa fa-times red" aria-hidden="true"></div>
+                                        </div>
+                                        <div *ngIf="site.tarifRabattDBIsbahncomfort">
+                                            <div class="fa fa-check success" aria-hidden="true"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Tageskarte BahnCard-Rabattierung</td>
+                                    <td>
+                                       <div *ngIf="!site.tarifRabattDBIsBahnCard">
+                                            <div class="fa fa-times red" aria-hidden="true"></div>
+                                        </div>
+                                        <div *ngIf="site.tarifRabattDBIsBahnCard">
+                                            <div class="fa fa-check success" aria-hidden="true"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Sondertarif</td>
+                                    <td>
+                                        <div *ngIf="site.tarifSondertarif == 'N' || site.tarifSondertarif == 'n' || site.tarifSondertarif == ''">
+                                            <div class="fa fa-times red" aria-hidden="true"></div>
+                                        </div>
+                                        <div *ngIf="site.tarifSondertarif != 'N' && site.tarifSondertarif != 'n' && site.tarifSondertarif != ''">
+                                            {{site.tarifSondertarif}} &euro;
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>                
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <sup>1</sup> Gültig bei Buchung von mindestens 3 Monaten.<br>
+                        <div *ngIf="site.tarifMonatIsParkscheinautomat">
+                            <sup>2</sup> Verkauf von Monatskarten am Parkscheinautomaten.
+                        </div>
+                        <div *ngIf="!site.tarifMonatIsParkscheinautomat">
+                            <sup>2</sup> Kein Verkauf von Monatskarten am Parkscheinautomaten.
+                        </div>
+                        <div *ngIf="site.tarifMonatIsParkAndRide">
+                            <sup>3</sup> Verkauf von Monatskarten im Reisezentrum.
+                        </div>
+                        <div *ngIf="!site.tarifMonatIsParkAndRide">
+                            <sup>3</sup> Kein Verkauf von Monatskarten im Reisezentrum.
+                        </div>
+                        <sup>4</sup> Gilt bei Buchung eines festen Stellplatzes.<br>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row more-second">
+        <div class="col-md-12">
+            <button class="astext" (click)="showAdditionalInfo()"><i class="{{additionalInfoClass}}" aria-hidden="true"></i> Weitere Informationen anzeigen</button>
+            <div *ngIf="additionalInfo">
+                <div class="row">
+                    <div class="col-md-12">
+                         <table class="table table-bordered table-margin-top">
+                            <tbody>
+                                <tr *ngIf="site.parkraumBemerkung != ''">
+                                    <td>Weitere Hinweise</td>
+                                    <td>{{site.parkraumBemerkung}}</td>
+                                </tr>
+                                <tr *ngIf="site.tarifParkdauer != ''">
+                                    <td>Hinweise zur Parkdauer</td>
+                                    <td>{{site.tarifParkdauer}}</td>
+                                </tr>
+                                <tr *ngIf="site.tarifMonatIsDauerparken">
+                                    <td>Tarif Dauerparker</td>
+                                    <td>Der Dauerparkvertrag mit dreimonatiger Laufzeit wird direkt mit dem Betreiber abgeschlossen.</td>
+                                </tr>
+                                <tr *ngIf="site.tarifWoVorverkaufDB != ''">
+                                    <td>Vertrieb Sonderprodukte Vorverkauf</td>
+                                    <td>{{site.tarifWoVorverkaufDB}}</td>
+                                </tr>
+                                <tr *ngIf="site.tarifWieRabattDB != ''">
+                                    <td>Vertrieb Sonderprodukte Rabattierung</td>
+                                    <td>{{site.tarifWieRabattDB}}</td>
+                                </tr>
+                                <tr *ngIf="site.zahlungMedien != ''">
+                                    <td>Zahlungsmethoden</td>
+                                    <td>{{site.zahlungMedien}}</td>
+                                </tr>
+                                <tr *ngIf="site.parkraumZufahrt != ''">
+                                    <td>Zufahrt</td>
+                                    <td>{{site.parkraumZufahrt}}</td>
+                                </tr>
+                            </tbody>
+                         </table>
+                    </div>          
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

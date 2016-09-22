@@ -1,0 +1,63 @@
+<div class="jumbotron" style="margin-top: 30px;">
+    <div class="row">
+        <div class="col-md-7">
+             
+            <h1>Freie Parkplätze?</h1>
+            <p>Finde jetzt alle Parkmöglichkeiten der Deutschen Bahn in deiner Umgebung. Gib einfach den gewünschten Ort ein oder nutze den Standort von deinem Mobilgerät. Aktuell können {{markers.length}} Parkplätze durchsucht werden!</p>
+            <br>
+            <div class="input-group">
+                <input class="form-control input-lg" type="text" placeholder="Suchen" [(ngModel)]="searchStr" (keyup)="searchLocation()">
+                <span class="input-group-btn">
+                    <button class="btn btn-secondary" type="button" (click)="getUserLocation()">
+                        <span class="glyphicon glyphicon-map-marker"></span>
+                    </button>    
+                </span>
+            </div>
+            <button class="astext" (click)="showUmkreisEdit()">Umkreis anpassen</button>
+            <div *ngIf="showUmkreis" class="">
+            <select id="umkreisSelect" [(ngModel)]="searchDistance" (change)="umkreisChanged($event)" class="selectpicker form-control form-select" >
+                    <option>2 Km</option>
+                    <option>5 Km</option>
+                    <option>10 Km</option>
+                    <option>15 Km</option>
+                    <option>20 Km</option>
+                    <option>50 Km</option>
+                </select>
+            </div>
+            <div *ngFor="let s of matches">
+                <div *ngIf="s.parkraumDisplayName">
+                    <a routerLink="site/{{s.parkraumId}}">{{s.parkraumDisplayName}} ( {{getDistance(s)}} km )</a>
+                </div>
+                <div *ngIf="!s.parkraumDisplayName">
+                    <a routerLink="site/{{s.parkraumId}}">{{s.parkraumParkTypName}} {{s.parkraumBahnhofName}} {{s.parkraumKennung}} ( {{getDistance(s)}} km )</a>
+                </div>
+            </div> 
+        </div>
+        <div class="col-md-5">
+            <div *ngIf="pos" class="maps-container">
+            <div class="sebm-google-map-container">
+                 <sebm-google-map 
+                    [latitude]="pos.lat"
+                    [longitude]="pos.lng"
+                    [zoom]="mapsoptions.zoom"
+                    [disableDefaultUI]="true"
+                    [zoomControl]="false"
+                    [styles]="mapsoptions.styles"
+                    [streetViewControl]="false">
+                        <sebm-google-map-marker 
+                            *ngFor="let m of markers; let i = index"
+                            (markerClick)="clickedMarker(i)"
+                            [latitude]="m.lat"
+                            [longitude]="m.lng">
+                        </sebm-google-map-marker>
+                </sebm-google-map>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div *ngIf="stations">
+    <ul *ngFor="let station of stations">
+        <li>{{station.station}}</li>
+    </ul>
+</div>
